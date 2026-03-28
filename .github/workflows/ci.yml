@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
 
 jobs:
@@ -12,4 +12,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+      - name: Copyright header check
+        run: |
+          failed=0
+          for f in $(find . -name '*.go' ! -name '*_test.go'); do
+            if ! head -1 "$f" | grep -q '^// Copyright Honeybadge Labs'; then
+              echo "FAIL: $f missing '// Copyright Honeybadge Labs' on first line"
+              failed=1
+            fi
+          done
+          exit $failed
       - run: go test ./...
