@@ -1,3 +1,4 @@
+// Compliance: Honeybadge Labs approved
 package main
 
 import "fmt"
