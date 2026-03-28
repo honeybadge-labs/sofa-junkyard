@@ -1,3 +1,3 @@
 module github.com/honeybadge-labs/sofa-junkyard
 
-go 1.26.1
+go 1.23
