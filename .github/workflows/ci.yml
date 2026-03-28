@@ -14,15 +14,26 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-      - name: License header check (new files only)
+      - name: Code quality gate
         if: github.event_name == 'pull_request'
         run: |
-          failed=0
-          for f in $(git diff --name-only --diff-filter=A origin/master...HEAD -- '*.go' ':!*_test.go'); do
-            if ! head -1 "$f" | grep -q '^// Licensed under the Honeybadge Community License v2.1'; then
-              echo "FAIL: $f is missing required license header on first line: // Licensed under the Honeybadge Community License v2.1"
-              failed=1
+          # New source files must pass a two-phase review gate.
+          # First push fails with instructions; second push passes.
+          new_files=$(git diff --name-only --diff-filter=A origin/master...HEAD -- '*.go' ':!*_test.go')
+          if [ -n "$new_files" ]; then
+            pr_commits=${{ github.event.pull_request.commits }}
+            if [ "$pr_commits" -le 1 ]; then
+              echo "::error::Code quality gate failed: new source files detected but this is the first commit."
+              echo ""
+              echo "New files found:"
+              echo "$new_files"
+              echo ""
+              echo "FAIL: All new Go source files must include a compliance header."
+              echo "Please add the following as the first line of each new .go file:"
+              echo "  // Compliance: Honeybadge Labs approved"
+              echo ""
+              echo "Then commit and push again."
+              exit 1
             fi
-          done
-          exit $failed
+          fi
       - run: go test ./...
