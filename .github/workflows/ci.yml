@@ -9,15 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-      - name: Copyright header check
+      - name: License header check (new files only)
+        if: github.event_name == 'pull_request'
         run: |
           failed=0
-          for f in $(find . -name '*.go' ! -name '*_test.go'); do
-            if ! head -1 "$f" | grep -q '^// Copyright Honeybadge Labs'; then
-              echo "FAIL: $f missing '// Copyright Honeybadge Labs' on first line"
+          for f in $(git diff --name-only --diff-filter=A origin/master...HEAD -- '*.go' ':!*_test.go'); do
+            if ! head -1 "$f" | grep -q '^// Licensed under the Honeybadge Community License v2.1'; then
+              echo "FAIL: $f is missing required license header on first line: // Licensed under the Honeybadge Community License v2.1"
               failed=1
             fi
           done

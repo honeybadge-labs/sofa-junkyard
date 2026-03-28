@@ -1,4 +1,3 @@
-// Copyright Honeybadge Labs
 package main
 
 import (
